@@ -6,6 +6,7 @@ import {
   FileText,
   FolderOpen,
   LogOut,
+  UploadCloud,
   Sparkles,
   Target,
   TrendingUp,
@@ -128,18 +129,30 @@ export default async function DashboardPage() {
             <span>AI Resume Analyser</span>
           </Link>
 
-          <form action={signOut}>
-            <Button
-              type="submit"
-              variant="outline"
-              className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              Logout
-            </Button>
-          </form>
-        </div>
-      </header>
+          <div className="flex items-center gap-3">
+  <Button
+    asChild
+    className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+  >
+    <Link href="/upload">
+      <UploadCloud className="size-4" aria-hidden="true" />
+      Upload resume
+    </Link>
+  </Button>
+
+  <form action={signOut}>
+    <Button
+      type="submit"
+      variant="outline"
+      className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"
+    >
+      <LogOut className="size-4" aria-hidden="true" />
+      Logout
+    </Button>
+    </form>
+</div>
+</div>
+</header>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <section>
