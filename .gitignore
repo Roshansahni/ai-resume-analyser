@@ -43,3 +43,5 @@ next-env.d.ts
 # Local AI assistant instructions
 AGENTS.md
 CLAUDE.md
+
+!.env.example
