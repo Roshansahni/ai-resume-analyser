@@ -121,7 +121,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         file_name: uploadedFile.name,
         file_url: storagePath,
-        file_type: fileType,
+        file_type: contentType,
         file_size_bytes: uploadedFile.size,
         raw_text: rawText,
         parsed_data: {},
@@ -131,13 +131,20 @@ export async function POST(request: Request) {
       .single();
 
     if (databaseError) {
-      await supabase.storage.from("resumes").remove([storagePath]);
+  console.error("Resume database insert failed:", {
+    code: databaseError.code,
+    message: databaseError.message,
+    details: databaseError.details,
+    hint: databaseError.hint,
+  });
 
-      return jsonError(
-        "The uploaded file was removed because its resume record could not be created.",
-        500,
-      );
-    }
+  await supabase.storage.from("resumes").remove([storagePath]);
+
+  return jsonError(
+    "The uploaded file was removed because its resume record could not be created.",
+    500,
+  );
+}
 
     return Response.json({ resume }, { status: 201 });
   } catch (error) {

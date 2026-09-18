@@ -1,7 +1,7 @@
 import "server-only";
 
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import { extractText, getDocumentProxy } from "unpdf";
 
 import type { ResumeFileType } from "@/lib/resume/file-validation";
 
@@ -24,14 +24,13 @@ export async function extractResumeText(
     let extractedText = "";
 
     if (fileType === "pdf") {
-      const parser = new PDFParse({ data: buffer });
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
 
-      try {
-        const result = await parser.getText();
-        extractedText = result.text;
-      } finally {
-        await parser.destroy();
-      }
+      const result = await extractText(pdf, {
+        mergePages: true,
+      });
+
+      extractedText = result.text;
     }
 
     if (fileType === "docx") {
@@ -43,7 +42,7 @@ export async function extractResumeText(
 
     if (rawText.length < 30) {
       throw new ResumeExtractionError(
-        "We could not find readable text in this document. Upload a text-based PDF or DOCX file.",
+        "We could not find selectable text in this document. Upload a text-based PDF or DOCX file.",
       );
     }
 
@@ -53,8 +52,10 @@ export async function extractResumeText(
       throw error;
     }
 
+    console.error("Resume text extraction failed:", error);
+
     throw new ResumeExtractionError(
-      "This document could not be read. It may be damaged, password-protected, or unsupported.",
+      "This document could not be read. It may be damaged, password-protected, or image-only.",
     );
   }
 }
