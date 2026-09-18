@@ -15,10 +15,12 @@ export default async function JobsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: jobs = [] } = await supabase
-    .from("job_descriptions")
-    .select("id, title, company, description, created_at")
-    .order("created_at", { ascending: false });
+  const { data: jobsData } = await supabase
+  .from("job_descriptions")
+  .select("id, title, company, description, created_at")
+  .order("created_at", { ascending: false });
+
+const jobs = jobsData ?? [];
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-10 text-white">

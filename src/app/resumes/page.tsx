@@ -14,10 +14,12 @@ export default async function ResumesPage() {
 
   if (!user) redirect("/login");
 
-  const { data: resumes = [] } = await supabase
-    .from("resumes")
-    .select("id, file_name, file_type, file_size_bytes, processing_status, created_at")
-    .order("created_at", { ascending: false });
+  const { data: resumesData } = await supabase
+  .from("resumes")
+  .select("id, file_name, file_type, file_size_bytes, processing_status, created_at")
+  .order("created_at", { ascending: false });
+
+const resumes = resumesData ?? [];
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-10 text-white">

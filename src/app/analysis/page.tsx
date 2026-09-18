@@ -19,10 +19,19 @@ export default async function AnalysisPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: resumes = [] }, { data: jobs = [] }] = await Promise.all([
-    supabase.from("resumes").select("id, file_name").order("created_at", { ascending: false }),
-    supabase.from("job_descriptions").select("id, title, company").order("created_at", { ascending: false }),
-  ]);
+  const [resumesResult, jobsResult] = await Promise.all([
+  supabase
+    .from("resumes")
+    .select("id, file_name")
+    .order("created_at", { ascending: false }),
+  supabase
+    .from("job_descriptions")
+    .select("id, title, company")
+    .order("created_at", { ascending: false }),
+]);
+
+const resumes = resumesResult.data ?? [];
+const jobs = jobsResult.data ?? [];
 
   const resumeId = params.resume ?? resumes[0]?.id;
   const jobId = params.job ?? jobs[0]?.id;
