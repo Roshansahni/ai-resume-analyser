@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,7 @@ export async function createJobDescription(formData: FormData) {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) redirect("/login?next=/jobs");
 
   await supabase.from("job_descriptions").insert({
     user_id: user.id,
@@ -25,14 +26,25 @@ export async function createJobDescription(formData: FormData) {
 
   revalidatePath("/jobs");
   revalidatePath("/analysis");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteJobDescription(formData: FormData) {
   const jobId = String(formData.get("jobId") ?? "");
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  await supabase.from("job_descriptions").delete().eq("id", jobId);
+  if (!user || !jobId) redirect("/login?next=/jobs");
+
+  await supabase
+    .from("job_descriptions")
+    .delete()
+    .eq("id", jobId)
+    .eq("user_id", user.id);
 
   revalidatePath("/jobs");
   revalidatePath("/analysis");
+  revalidatePath("/dashboard");
 }

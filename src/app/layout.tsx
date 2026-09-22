@@ -9,8 +9,15 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "AI Resume Analyser",
-  description: "AI-powered ATS-style resume analysis and job matching.",
+  title: {
+    default: "AI Resume Analyser",
+    template: "%s | AI Resume Analyser",
+  },
+  description: "Private ATS-style resume analysis, improvement tracking, and job matching.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
@@ -19,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html className="dark" lang="en">
       <body className={`${geist.variable} antialiased`}>{children}</body>
     </html>
   );

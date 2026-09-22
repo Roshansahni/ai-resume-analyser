@@ -129,30 +129,35 @@ export default async function DashboardPage() {
             <span>AI Resume Analyser</span>
           </Link>
 
-          <div className="flex items-center gap-3">
-  <Button
-    asChild
-    className="bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-  >
-    <Link href="/upload">
-      <UploadCloud className="size-4" aria-hidden="true" />
-      Upload resume
-    </Link>
-  </Button>
-
-  <form action={signOut}>
-    <Button
-      type="submit"
-      variant="outline"
-      className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"
-    >
-      <LogOut className="size-4" aria-hidden="true" />
-      Logout
-    </Button>
-    </form>
-</div>
-</div>
-</header>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button asChild variant="outline" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
+              <Link href="/resumes">Resumes</Link>
+            </Button>
+            <Button asChild variant="outline" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
+              <Link href="/jobs">Jobs</Link>
+            </Button>
+            <Button asChild variant="outline" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
+              <Link href="/analysis">Analysis</Link>
+            </Button>
+            <Button asChild className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
+              <Link href="/upload">
+                <UploadCloud className="size-4" aria-hidden="true" />
+                Upload resume
+              </Link>
+            </Button>
+            <form action={signOut}>
+              <Button
+                type="submit"
+                variant="outline"
+                className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                Logout
+              </Button>
+            </form>
+          </div>
+        </div>
+      </header>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <section>
@@ -235,8 +240,7 @@ export default async function DashboardPage() {
                   <FolderOpen className="mx-auto size-9 text-slate-500" aria-hidden="true" />
                   <h2 className="mt-4 font-semibold text-white">No resumes uploaded yet</h2>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400">
-                    Resume upload, validation, private storage, and processing are the
-                    next project feature being added.
+                    Upload a PDF or DOCX to create your first private, analysable resume.
                   </p>
                 </div>
               ) : (
@@ -272,8 +276,8 @@ export default async function DashboardPage() {
               </span>
               <CardTitle className="text-xl text-white">Your analysis journey</CardTitle>
               <CardDescription className="text-slate-300">
-                The application will progressively turn uploaded resumes into
-                structured, explainable reports.
+                Turn uploaded resumes into structured, explainable reports and
+                targeted job-match guidance.
               </CardDescription>
             </CardHeader>
             <CardContent>
