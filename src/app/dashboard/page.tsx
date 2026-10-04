@@ -187,7 +187,7 @@ export default async function DashboardPage() {
           <ScoreCard
             title="Uploaded resumes"
             value={String(resumeCount)}
-            description="Private PDF and DOCX documents"
+            description="Private resume documents in supported formats"
             icon={FolderOpen}
             accentClassName="bg-cyan-300/10 text-cyan-200"
           />
@@ -240,7 +240,7 @@ export default async function DashboardPage() {
                   <FolderOpen className="mx-auto size-9 text-slate-500" aria-hidden="true" />
                   <h2 className="mt-4 font-semibold text-white">No resumes uploaded yet</h2>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400">
-                    Upload a PDF or DOCX to create your first private, analysable resume.
+                    Upload a supported resume file to create your first private, analysable resume.
                   </p>
                 </div>
               ) : (
@@ -283,7 +283,7 @@ export default async function DashboardPage() {
             <CardContent>
               <ol className="space-y-4 text-sm">
                 {[
-                  "Upload a validated PDF or DOCX resume",
+                  "Upload a validated resume document",
                   "Extract text and identify resume sections",
                   "Calculate ATS-style and resume-health scores",
                   "Compare against a target job description",

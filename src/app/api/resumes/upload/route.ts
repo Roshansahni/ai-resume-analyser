@@ -1,14 +1,16 @@
 import { randomUUID } from "node:crypto";
 
 import {
-  DOCX_MIME_TYPE,
   getResumeFileType,
   getResumeFileValidationError,
-  PDF_MIME_TYPE,
+  RESUME_FILE_DEFINITIONS,
+  SUPPORTED_RESUME_FORMATS_LABEL,
 } from "@/lib/resume/file-validation";
 import {
   extractResumeText,
+  ResumeContentValidationError,
   ResumeExtractionError,
+  validateResumeFileContent,
 } from "@/lib/resume/extract-text";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,24 +19,6 @@ export const dynamic = "force-dynamic";
 
 function jsonError(error: string, status: number) {
   return Response.json({ error }, { status });
-}
-
-function hasPdfSignature(buffer: Buffer) {
-  return buffer.subarray(0, 5).toString() === "%PDF-";
-}
-
-function hasDocxSignature(buffer: Buffer) {
-  const zipSignature = buffer.subarray(0, 4).toString("hex");
-  const isZip =
-    zipSignature === "504b0304" ||
-    zipSignature === "504b0506" ||
-    zipSignature === "504b0708";
-
-  return (
-    isZip &&
-    buffer.includes(Buffer.from("[Content_Types].xml")) &&
-    buffer.includes(Buffer.from("word/document.xml"))
-  );
 }
 
 function createSafeFileName(fileName: string) {
@@ -74,32 +58,21 @@ export async function POST(request: Request) {
       return jsonError(validationError, 400);
     }
 
-    const fileType = getResumeFileType(
-      uploadedFile.name,
-      uploadedFile.type,
-    );
+    const fileType = getResumeFileType(uploadedFile.name);
 
     if (!fileType) {
-      return jsonError("Only PDF and DOCX resume files are supported.", 400);
+      return jsonError(`Supported formats: ${SUPPORTED_RESUME_FORMATS_LABEL}.`, 400);
     }
 
     const buffer = Buffer.from(await uploadedFile.arrayBuffer());
-
-    if (fileType === "pdf" && !hasPdfSignature(buffer)) {
-      return jsonError("This file is not a valid PDF document.", 400);
-    }
-
-    if (fileType === "docx" && !hasDocxSignature(buffer)) {
-      return jsonError("This file is not a valid DOCX document.", 400);
-    }
+    validateResumeFileContent(fileType, buffer);
 
     const rawText = await extractResumeText(fileType, buffer);
 
     const safeFileName = createSafeFileName(uploadedFile.name);
     const storagePath = `${user.id}/${randomUUID()}-${safeFileName}`;
 
-    const contentType =
-      fileType === "pdf" ? PDF_MIME_TYPE : DOCX_MIME_TYPE;
+    const contentType = RESUME_FILE_DEFINITIONS[fileType].mimeType;
 
     const { error: storageError } = await supabase.storage
       .from("resumes")
@@ -131,23 +104,20 @@ export async function POST(request: Request) {
       .single();
 
     if (databaseError) {
-  console.error("Resume database insert failed:", {
-    code: databaseError.code,
-    message: databaseError.message,
-    details: databaseError.details,
-    hint: databaseError.hint,
-  });
-
-  await supabase.storage.from("resumes").remove([storagePath]);
-
-  return jsonError(
-    "The uploaded file was removed because its resume record could not be created.",
-    500,
-  );
-}
+      console.error("Resume database insert failed", { code: databaseError.code });
+      await supabase.storage.from("resumes").remove([storagePath]);
+      return jsonError(
+        "The uploaded file was removed because its resume record could not be created.",
+        500,
+      );
+    }
 
     return Response.json({ resume }, { status: 201 });
   } catch (error) {
+    if (error instanceof ResumeContentValidationError) {
+      return jsonError(error.message, 400);
+    }
+
     if (error instanceof ResumeExtractionError) {
       return jsonError(error.message, 422);
     }

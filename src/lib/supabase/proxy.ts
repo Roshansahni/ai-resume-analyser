@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const publicPaths = ["/", "/login", "/signup", "/auth/confirm", "/auth/error"];
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request,
   });
 

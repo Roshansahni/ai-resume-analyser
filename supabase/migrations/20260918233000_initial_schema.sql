@@ -19,7 +19,13 @@ create table if not exists public.resumes (
   file_type text not null check (
     file_type in (
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'text/markdown',
+      'application/rtf',
+      'text/html',
+      'application/vnd.oasis.opendocument.text'
     )
   ),
   file_size_bytes integer not null check (
@@ -340,7 +346,13 @@ values (
   5242880,
   array[
     'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'text/markdown',
+    'application/rtf',
+    'text/html',
+    'application/vnd.oasis.opendocument.text'
   ]
 )
 on conflict (id) do update

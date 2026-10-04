@@ -48,7 +48,7 @@ const features = [
     icon: BrainCircuit,
   },
   {
-    title: "PDF and DOCX support",
+    title: "Multiple document formats",
     description:
       "Upload supported resume formats securely for text extraction, section detection, and structured analysis.",
     icon: UploadCloud,
@@ -65,7 +65,7 @@ const steps = [
   {
     number: "01",
     title: "Upload your resume",
-    description: "Upload a PDF or DOCX resume, then let the application extract and structure its content.",
+    description: "Upload a PDF, Word document, text, RTF, HTML, or ODT resume, then let the application extract and structure its content.",
   },
   {
     number: "02",
@@ -162,7 +162,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-x-5 gap-y-3 text-sm text-slate-300">
               <span className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-cyan-300" aria-hidden="true" />
-                PDF and DOCX support
+                PDF, Word, text, RTF, HTML, and ODT support
               </span>
               <span className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-cyan-300" aria-hidden="true" />

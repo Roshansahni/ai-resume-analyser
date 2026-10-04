@@ -48,7 +48,7 @@ function formatDate(value: string) {
 
 function errorMessage(code?: string) {
   const messages: Record<string, string> = {
-    "missing-text": "This resume has no extracted text. Upload a readable PDF or DOCX file.",
+    "missing-text": "This resume has no extracted text. Upload a readable file in a supported format.",
     "analysis-failed": "The analysis could not be saved. Please try again.",
     "matching-data": "Choose a resume with extracted text and a saved job description.",
     "match-failed": "The job match could not be saved. Please try again.",

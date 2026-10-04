@@ -15,6 +15,8 @@ import {
 import {
   getResumeFileValidationError,
   MAX_RESUME_FILE_SIZE_LABEL,
+  RESUME_FILE_INPUT_ACCEPT,
+  SUPPORTED_RESUME_FORMATS_LABEL,
 } from "@/lib/resume/file-validation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -155,19 +157,19 @@ export function ResumeUploadForm() {
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">
-              Drag a PDF or DOCX file here, or choose one from your computer.
+              Drag a resume file here, or choose one from your computer.
               Files stay private to your account.
             </p>
 
             <p className="mt-2 text-xs text-slate-500">
-              PDF or DOCX · Maximum file size: {MAX_RESUME_FILE_SIZE_LABEL}
+              Supported: {SUPPORTED_RESUME_FORMATS_LABEL} · Maximum file size: {MAX_RESUME_FILE_SIZE_LABEL}
             </p>
 
             <input
               ref={inputRef}
               className="hidden"
               type="file"
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept={RESUME_FILE_INPUT_ACCEPT}
               onChange={(event) => selectFile(event.target.files?.item(0) ?? null)}
             />
 
