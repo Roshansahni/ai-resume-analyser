@@ -42,6 +42,29 @@ export async function runAtsAnalysis(formData: FormData) {
     redirect(analysisUrl(resumeId, "&error=missing-text"));
   }
 
+  // A resume is immutable after upload, so its deterministic ATS report is
+  // reusable. Returning the newest saved result avoids duplicate reports when
+  // a visitor double-clicks the button or revisits an already analysed resume.
+  const { data: existingAnalysis, error: existingAnalysisError } = await supabase
+    .from("analyses")
+    .select("id")
+    .eq("resume_id", resume.id)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingAnalysis) {
+    redirect(analysisUrl(resumeId, `&analysis=${existingAnalysis.id}`));
+  }
+
+  if (existingAnalysisError) {
+    console.error("Existing analysis lookup failed", {
+      code: existingAnalysisError.code,
+    });
+    redirect(analysisUrl(resumeId, "&error=analysis-failed"));
+  }
+
   const result = analyseResume(resume.raw_text);
 
   const { data: analysis, error: analysisError } = await supabase
@@ -128,6 +151,29 @@ export async function runJobMatch(formData: FormData) {
 
   if (!resume?.raw_text || !job?.description) {
     redirect(analysisUrl(resumeId, "&error=matching-data"));
+  }
+
+  // Matching is also deterministic for a saved resume/job pair. Reuse an
+  // existing report so repeated clicks never flood the history with copies.
+  const { data: existingMatch, error: existingMatchError } = await supabase
+    .from("job_matches")
+    .select("id")
+    .eq("resume_id", resumeId)
+    .eq("job_description_id", jobId)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingMatch) {
+    redirect(`${analysisUrl(resumeId)}&job=${jobId}&match=${existingMatch.id}`);
+  }
+
+  if (existingMatchError) {
+    console.error("Existing job match lookup failed", {
+      code: existingMatchError.code,
+    });
+    redirect(analysisUrl(resumeId, "&error=match-failed"));
   }
 
   const result = matchResumeToJob(resume.raw_text, job.description);

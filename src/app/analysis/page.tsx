@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowLeft,
-  BarChart3,
   BriefcaseBusiness,
   CheckCircle2,
   CircleAlert,
@@ -25,10 +24,9 @@ import { createClient } from "@/lib/supabase/server";
 
 import {
   generateAiFeedback,
-  runAtsAnalysis,
-  runJobMatch,
   toggleImprovement,
 } from "./actions";
+import { AnalysisControls } from "./analysis-controls";
 
 function toStringArray(value: unknown) {
   return Array.isArray(value)
@@ -93,44 +91,60 @@ export default async function AnalysisPage({
 
   const resumes = resumesResult.data ?? [];
   const jobs = jobsResult.data ?? [];
-  const resumeId = params.resume ?? resumes[0]?.id;
-  const jobId = params.job ?? jobs[0]?.id;
+  const selectedResume =
+    resumes.find((resume) => resume.id === params.resume) ?? resumes[0];
+  const selectedJob = jobs.find((job) => job.id === params.job) ?? jobs[0];
+  const resumeId = selectedResume?.id ?? "";
+  const jobId = selectedJob?.id;
 
-  const [analysisResult, matchResult, historyResult, improvementsResult] =
+  const [
+    selectedAnalysisResult,
+    latestAnalysisResult,
+    selectedMatchResult,
+    latestMatchResult,
+    historyResult,
+    improvementsResult,
+  ] =
     await Promise.all([
+      resumeId && params.analysis
+        ? supabase
+            .from("analyses")
+            .select("*")
+            .eq("id", params.analysis)
+            .eq("resume_id", resumeId)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       resumeId
-        ? params.analysis
-          ? supabase
-              .from("analyses")
-              .select("*")
-              .eq("id", params.analysis)
-              .eq("resume_id", resumeId)
-              .maybeSingle()
-          : supabase
-              .from("analyses")
-              .select("*")
-              .eq("resume_id", resumeId)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
+        ? supabase
+            .from("analyses")
+            .select("*")
+            .eq("resume_id", resumeId)
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+      resumeId && jobId && params.match
+        ? supabase
+            .from("job_matches")
+            .select("*")
+            .eq("id", params.match)
+            .eq("resume_id", resumeId)
+            .eq("job_description_id", jobId)
+            .eq("user_id", user.id)
+            .maybeSingle()
         : Promise.resolve({ data: null }),
       resumeId && jobId
-        ? params.match
-          ? supabase
-              .from("job_matches")
-              .select("*")
-              .eq("id", params.match)
-              .eq("resume_id", resumeId)
-              .eq("job_description_id", jobId)
-              .maybeSingle()
-          : supabase
-              .from("job_matches")
-              .select("*")
-              .eq("resume_id", resumeId)
-              .eq("job_description_id", jobId)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle()
+        ? supabase
+            .from("job_matches")
+            .select("*")
+            .eq("resume_id", resumeId)
+            .eq("job_description_id", jobId)
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
         : Promise.resolve({ data: null }),
       resumeId
         ? supabase
@@ -150,8 +164,10 @@ export default async function AnalysisPage({
         : Promise.resolve({ data: [] }),
     ]);
 
-  const analysis = analysisResult.data;
-  const match = matchResult.data;
+  // Invalid or stale URL parameters must not leave the user with a blank page.
+  // Fall back to the current resume/job's latest saved report instead.
+  const analysis = selectedAnalysisResult.data ?? latestAnalysisResult.data;
+  const match = selectedMatchResult.data ?? latestMatchResult.data;
   const history = historyResult.data ?? [];
   const improvements = improvementsResult.data ?? [];
   const strengths = toStringArray(analysis?.strengths);
@@ -212,36 +228,13 @@ export default async function AnalysisPage({
           </Card>
         ) : (
           <div className="space-y-6">
-            <section className="grid gap-6 lg:grid-cols-2">
-              <Card className="border-white/10 bg-slate-900/80">
-                <CardHeader><CardTitle>Run ATS analysis</CardTitle><CardDescription className="text-slate-400">Creates a new saved report for the selected resume.</CardDescription></CardHeader>
-                <CardContent>
-                  <form action={runAtsAnalysis} className="flex flex-col gap-3 sm:flex-row">
-                    <select className="h-9 min-w-0 flex-1 rounded-lg border border-white/15 bg-slate-950 px-3 text-sm text-white" defaultValue={resumeId} name="resumeId">
-                      {resumes.map((resume) => <option key={resume.id} value={resume.id}>{resume.file_name}</option>)}
-                    </select>
-                    <Button className="bg-cyan-400 text-slate-950 hover:bg-cyan-300" type="submit"><BarChart3 /> Analyse resume</Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              <Card className="border-white/10 bg-slate-900/80">
-                <CardHeader><CardTitle>Compare with a job</CardTitle><CardDescription className="text-slate-400">Match a selected resume with a saved job description.</CardDescription></CardHeader>
-                <CardContent>
-                  {jobs.length === 0 ? <p className="text-sm text-slate-400">Add a role in <Link className="text-cyan-300 underline" href="/jobs">Jobs</Link> before matching.</p> : (
-                    <form action={runJobMatch} className="grid gap-3 sm:grid-cols-2">
-                      <select className="h-9 rounded-lg border border-white/15 bg-slate-950 px-3 text-sm text-white" defaultValue={resumeId} name="resumeId">
-                        {resumes.map((resume) => <option key={resume.id} value={resume.id}>{resume.file_name}</option>)}
-                      </select>
-                      <select className="h-9 rounded-lg border border-white/15 bg-slate-950 px-3 text-sm text-white" defaultValue={jobId} name="jobId">
-                        {jobs.map((job) => <option key={job.id} value={job.id}>{job.title || "Untitled role"}{job.company ? ` — ${job.company}` : ""}</option>)}
-                      </select>
-                      <Button className="bg-cyan-400 text-slate-950 hover:bg-cyan-300 sm:col-span-2" type="submit"><BriefcaseBusiness /> Match job</Button>
-                    </form>
-                  )}
-                </CardContent>
-              </Card>
-            </section>
+            <AnalysisControls
+              hasAnalysis={Boolean(analysis)}
+              jobId={jobId}
+              jobs={jobs}
+              resumeId={resumeId}
+              resumes={resumes}
+            />
 
             {analysis ? (
               <>
