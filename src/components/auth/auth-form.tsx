@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, FileSearch, LoaderCircle } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
+import { signIn, signUp } from "@/app/auth/actions";
 
 type AuthMode = "login" | "signup";
 
@@ -33,12 +33,26 @@ type Feedback = {
 const inputClassName =
   "border-slate-600 bg-slate-950 text-white placeholder:text-slate-400 focus-visible:border-cyan-300 focus-visible:ring-cyan-300/30";
 
+function getSafeNextPath(value: string | null) {
+  return value?.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("\\") &&
+    !/[\r\n]/.test(value)
+    ? value
+    : "/dashboard";
+}
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const isSignup = mode === "signup";
+  const nextPath = getSafeNextPath(searchParams.get("next"));
+  const alternateAuthPath =
+    (isSignup ? "/login" : "/signup") +
+    (nextPath === "/dashboard" ? "" : `?next=${encodeURIComponent(nextPath)}`);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,6 +65,36 @@ export function AuthForm({ mode }: AuthFormProps) {
     const fullName = String(formData.get("fullName") ?? "").trim();
     const confirmPassword = String(formData.get("confirmPassword") ?? "");
 
+    if (isSignup && !fullName) {
+      setFeedback({
+        type: "error",
+        title: "Full name is required",
+        description: "Enter your name before creating an account.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (isSignup && fullName.length > 120) {
+      setFeedback({
+        type: "error",
+        title: "Name is too long",
+        description: "Use a name with 120 characters or fewer.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setFeedback({
+        type: "error",
+        title: "Choose a longer password",
+        description: "Your password must contain at least 8 characters.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     if (isSignup && password !== confirmPassword) {
       setFeedback({
         type: "error",
@@ -62,35 +106,20 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
 
     try {
-      const supabase = createClient();
+      const result = isSignup
+        ? await signUp({ email, password, fullName, nextPath })
+        : await signIn({ email, password, nextPath });
 
-      if (isSignup) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/confirm`,
-            data: {
-              full_name: fullName,
-            },
-          },
+      if (result.status === "error") {
+        setFeedback({
+          type: "error",
+          title: result.title,
+          description: result.description,
         });
+        return;
+      }
 
-        if (error) {
-          setFeedback({
-            type: "error",
-            title: "Unable to create your account",
-            description: error.message,
-          });
-          return;
-        }
-
-        if (data.session) {
-          router.push("/dashboard");
-          router.refresh();
-          return;
-        }
-
+      if (result.status === "confirmation-required") {
         setFeedback({
           type: "success",
           title: "Check your email",
@@ -100,21 +129,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setFeedback({
-          type: "error",
-          title: "Unable to sign in",
-          description: "Check your email and password, then try again.",
-        });
-        return;
-      }
-
-      router.push("/dashboard");
+      router.push(result.redirectTo);
       router.refresh();
     } catch {
       setFeedback({
@@ -166,6 +181,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     placeholder="Your full name"
                     autoComplete="name"
                     className={inputClassName}
+                    maxLength={120}
                     required
                   />
                 </div>
@@ -182,6 +198,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   placeholder="you@example.com"
                   autoComplete="email"
                   className={inputClassName}
+                  maxLength={254}
                   required
                 />
               </div>
@@ -252,7 +269,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <p className="mt-6 text-center text-sm text-slate-400">
               {isSignup ? "Already have an account?" : "New to AI Resume Analyser?"}{" "}
               <Link
-                href={isSignup ? "/login" : "/signup"}
+                href={alternateAuthPath}
                 className="font-medium text-cyan-300 hover:text-cyan-200"
               >
                 {isSignup ? "Sign in" : "Create an account"}
