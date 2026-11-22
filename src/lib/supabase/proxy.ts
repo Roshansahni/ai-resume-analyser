@@ -1,7 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const publicPaths = ["/", "/login", "/signup", "/auth/confirm", "/auth/error"];
+const publicPaths = [
+  "/",
+  "/about",
+  "/contact",
+  "/faq",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/confirm",
+  "/auth/error",
+];
+const authenticatedRouteHandlers = ["/api/resumes/upload"];
 
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({
@@ -37,8 +49,11 @@ export async function updateSession(request: NextRequest) {
   const isPublicPath = publicPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
+  const isAuthenticatedRouteHandler = authenticatedRouteHandlers.includes(pathname);
 
-  if (!isAuthenticated && !isPublicPath) {
+  // This route handler authenticates itself so it can return JSON rather than
+  // an HTML redirect when a caller is not signed in.
+  if (!isAuthenticated && !isPublicPath && !isAuthenticatedRouteHandler) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", pathname);

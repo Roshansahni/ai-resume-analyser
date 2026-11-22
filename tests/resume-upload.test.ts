@@ -87,8 +87,28 @@ for (const [fileType, buffer] of [
     const text = await extractResumeText(fileType, buffer);
     assert.match(text, /Avery Candidate/);
     assert.match(text, /TypeScript/);
+    if (fileType === "html") assert.doesNotMatch(text, /ignored\(\)/);
   });
 }
+
+test("reports when a PDF needs OCR instead of pretending it has readable text", async () => {
+  const scannedPdf = makePdf(" ");
+  validateResumeFileContent("pdf", scannedPdf);
+  await assert.rejects(
+    () => extractResumeText("pdf", scannedPdf),
+    /OCR is required/i,
+  );
+});
+
+test("rejects a DOCX archive that expands beyond the safe extraction limit", () => {
+  const zip = new AdmZip();
+  zip.addFile("word/document.xml", Buffer.alloc(15 * 1024 * 1024 + 1, "a"));
+
+  assert.throws(
+    () => validateResumeFileContent("docx", zip.toBuffer()),
+    ResumeContentValidationError,
+  );
+});
 
 test("recognises legacy DOC files and safely rejects corrupt DOC input during extraction", async () => {
   const corruptOle = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);

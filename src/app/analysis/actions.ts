@@ -88,7 +88,7 @@ export async function runAtsAnalysis(formData: FormData) {
     .single();
 
   if (analysisError || !analysis) {
-    console.error("Analysis insert failed:", analysisError);
+    console.error("Analysis insert failed", { code: analysisError?.code });
     redirect(analysisUrl(resumeId, "&error=analysis-failed"));
   }
 
@@ -106,7 +106,7 @@ export async function runAtsAnalysis(formData: FormData) {
       .insert(improvements);
 
     if (improvementsError) {
-      console.error("Improvements insert failed:", improvementsError);
+      console.error("Improvements insert failed", { code: improvementsError.code });
     }
   }
 
@@ -194,7 +194,7 @@ export async function runJobMatch(formData: FormData) {
     .single();
 
   if (error || !match) {
-    console.error("Job match insert failed:", error);
+    console.error("Job match insert failed", { code: error?.code });
     redirect(analysisUrl(resumeId, "&error=match-failed"));
   }
 
@@ -236,7 +236,7 @@ export async function toggleImprovement(formData: FormData) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Improvement update failed:", error);
+    console.error("Improvement update failed", { code: error.code });
   }
 
   revalidatePath("/dashboard");
@@ -328,7 +328,9 @@ export async function generateAiFeedback(formData: FormData) {
       throw error;
     }
   } catch (error) {
-    console.error("AI feedback failed:", error);
+    console.error("AI feedback failed", {
+      error: error instanceof Error ? error.name : "unknown",
+    });
     redirect(analysisUrl(resumeId, `&analysis=${analysisId}&error=ai-failed`));
   }
 

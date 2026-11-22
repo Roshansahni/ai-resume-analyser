@@ -122,6 +122,9 @@ export async function POST(request: Request) {
       return jsonError(error.message, 422);
     }
 
+    console.error("Resume upload failed", {
+      error: error instanceof Error ? error.name : "unknown",
+    });
     return jsonError("Something went wrong while uploading your resume.", 500);
   }
 }

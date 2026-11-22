@@ -42,8 +42,16 @@ const ACTION_VERBS = [
   "launched",
 ];
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function has(text: string, value: string) {
-  return text.toLowerCase().includes(value.toLowerCase());
+  const escapedValue = escapeRegExp(value);
+  return new RegExp(
+    `(^|[^a-z0-9])${escapedValue}(?=$|[^a-z0-9])`,
+    "i",
+  ).test(text);
 }
 
 function score(value: number) {

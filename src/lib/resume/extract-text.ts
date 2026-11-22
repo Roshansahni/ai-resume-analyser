@@ -1,11 +1,16 @@
-import AdmZip from "adm-zip";
-import { load } from "cheerio";
-import mammoth from "mammoth";
-import parseRtf from "rtf-parser";
-import { extractText, getDocumentProxy } from "unpdf";
-import WordExtractor from "word-extractor";
+import { createRequire } from "node:module";
 
 import type { ResumeFileType } from "@/lib/resume/file-validation";
+
+// The CommonJS entry points avoid an ESM loader hang observed with Node 26
+// while keeping the same parsers in the production application.
+const require = createRequire(import.meta.url);
+const AdmZip = require("adm-zip") as typeof import("adm-zip");
+const { load } = require("cheerio") as typeof import("cheerio");
+const mammoth = require("mammoth") as typeof import("mammoth");
+const parseRtf = require("rtf-parser") as typeof import("rtf-parser").default;
+const WordExtractor = require("word-extractor") as typeof import("word-extractor").default;
+const { extractText, getDocumentProxy } = require("unpdf") as typeof import("unpdf");
 
 const MINIMUM_RESUME_TEXT_LENGTH = 30;
 const MAX_EXTRACTED_TEXT_LENGTH = 1_000_000;

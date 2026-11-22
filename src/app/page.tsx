@@ -98,7 +98,7 @@ export default function Home() {
             <span>AI Resume Analyser</span>
           </Link>
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
+          <nav className="hidden items-center gap-5 text-sm text-slate-300 lg:flex">
             <a href="#features" className="transition hover:text-white">
               Features
             </a>
@@ -108,6 +108,15 @@ export default function Home() {
             <a href="#privacy" className="transition hover:text-white">
               Privacy
             </a>
+            <Link href="/about" className="transition hover:text-white">
+              About
+            </Link>
+            <Link href="/faq" className="transition hover:text-white">
+              FAQ
+            </Link>
+            <Link href="/contact" className="transition hover:text-white">
+              Contact
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -306,7 +315,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold">Your data deserves protection.</h2>
             </div>
             <p className="mt-4 max-w-3xl text-slate-300">
-              The production application will use authenticated access, PostgreSQL Row Level Security,
+              The application uses authenticated access, PostgreSQL Row Level Security,
               and user-scoped file storage so users can access only their own resumes and reports.
             </p>
           </div>
@@ -319,7 +328,12 @@ export default function Home() {
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <p>© 2026 AI Resume Analyser. Built for academic and professional use.</p>
-        <p>B.Tech AI & Data Science Final-Year Project</p>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          <Link href="/about" className="hover:text-white">About</Link>
+          <Link href="/faq" className="hover:text-white">FAQ</Link>
+          <Link href="/contact" className="hover:text-white">Contact</Link>
+          <p>B.Tech AI & Data Science Final-Year Project</p>
+        </div>
       </footer>
     </main>
   );

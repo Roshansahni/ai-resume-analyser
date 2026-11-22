@@ -204,9 +204,19 @@ export function AuthForm({ mode }: AuthFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-100">
-                  Password
-                </Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="password" className="text-slate-100">
+                    Password
+                  </Label>
+                  {!isSignup ? (
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-medium text-cyan-300 hover:text-cyan-200"
+                    >
+                      Forgot password?
+                    </Link>
+                  ) : null}
+                </div>
                 <Input
                   id="password"
                   name="password"

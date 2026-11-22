@@ -42,6 +42,11 @@ export function ResumeUploadForm() {
   const [progress, setProgress] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
+  function clearSelectedFile() {
+    setFile(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
   function selectFile(candidate: File | null) {
     setFeedback(null);
 
@@ -56,7 +61,7 @@ export function ResumeUploadForm() {
     );
 
     if (validationError) {
-      setFile(null);
+      clearSelectedFile();
       setFeedback({ type: "error", message: validationError });
       return;
     }
@@ -110,7 +115,7 @@ export function ResumeUploadForm() {
 
       if (request.status >= 200 && request.status < 300) {
         setProgress(100);
-        setFile(null);
+        clearSelectedFile();
         router.refresh();
         setFeedback({
           type: "success",
@@ -199,7 +204,7 @@ export function ResumeUploadForm() {
                 className="shrink-0"
                 disabled={isUploading}
                 onClick={() => {
-                  setFile(null);
+                  clearSelectedFile();
                   setFeedback(null);
                 }}
                 size="icon"

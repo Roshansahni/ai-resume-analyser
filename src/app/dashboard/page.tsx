@@ -6,6 +6,7 @@ import {
   FileText,
   FolderOpen,
   LogOut,
+  Settings,
   UploadCloud,
   Sparkles,
   Target,
@@ -84,24 +85,27 @@ export default async function DashboardPage() {
     latestJobMatchResult,
     recentResumesResult,
   ] = await Promise.all([
-    supabase.from("resumes").select("*", { count: "exact", head: true }),
-    supabase.from("analyses").select("*", { count: "exact", head: true }),
-    supabase.from("job_matches").select("*", { count: "exact", head: true }),
+    supabase.from("resumes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("analyses").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+    supabase.from("job_matches").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     supabase
       .from("analyses")
       .select("ats_score, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
       .from("job_matches")
       .select("match_score, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
     supabase
       .from("resumes")
       .select("id, file_name, file_type, processing_status, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5),
   ]);
@@ -138,6 +142,12 @@ export default async function DashboardPage() {
             </Button>
             <Button asChild variant="outline" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
               <Link href="/analysis">Analysis</Link>
+            </Button>
+            <Button asChild variant="outline" className="border-white/15 bg-transparent text-white hover:bg-white/10 hover:text-white">
+              <Link href="/settings">
+                <Settings className="size-4" aria-hidden="true" />
+                Settings
+              </Link>
             </Button>
             <Button asChild className="bg-cyan-400 text-slate-950 hover:bg-cyan-300">
               <Link href="/upload">

@@ -4,7 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 function getSafeNextPath(value: string | null) {
-  if (value?.startsWith("/") && !value.startsWith("//")) {
+  if (
+    value?.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.includes("\\") &&
+    !/[\r\n]/.test(value)
+  ) {
     return value;
   }
 

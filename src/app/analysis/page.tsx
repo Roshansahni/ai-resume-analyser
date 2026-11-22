@@ -50,7 +50,7 @@ function errorMessage(code?: string) {
     "analysis-failed": "The analysis could not be saved. Please try again.",
     "matching-data": "Choose a resume with extracted text and a saved job description.",
     "match-failed": "The job match could not be saved. Please try again.",
-    "ai-not-configured": "AI feedback is not configured. Add OPENAI_API_KEY to .env.local and restart the development server.",
+    "ai-not-configured": "AI feedback is not configured for this environment. Ask the project owner to add the required server-side API key.",
     "ai-failed": "AI feedback could not be generated. Check your API key, billing, and network connection.",
   };
 
@@ -82,10 +82,12 @@ export default async function AnalysisPage({
     supabase
       .from("resumes")
       .select("id, file_name")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("job_descriptions")
       .select("id, title, company")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
 
@@ -151,6 +153,7 @@ export default async function AnalysisPage({
             .from("analyses")
             .select("id, ats_score, created_at")
             .eq("resume_id", resumeId)
+            .eq("user_id", user.id)
             .order("created_at", { ascending: false })
             .limit(8)
         : Promise.resolve({ data: [] }),
@@ -159,6 +162,7 @@ export default async function AnalysisPage({
             .from("improvements")
             .select("id, section, improved_text, status, created_at")
             .eq("resume_id", resumeId)
+            .eq("user_id", user.id)
             .order("created_at", { ascending: false })
             .limit(12)
         : Promise.resolve({ data: [] }),
